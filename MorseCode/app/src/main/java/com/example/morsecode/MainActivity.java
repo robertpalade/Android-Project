@@ -9,12 +9,10 @@ import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.view.ContextMenu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -33,22 +31,60 @@ public class MainActivity extends AppCompatActivity {
         hasCameraFlash = getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
 
 
+
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 String text = editText.getText().toString();
                 String morse = textToMorse(text);
-                textView.setText(morse);
+//                textView.setText(morse);
 
-                if(hasCameraFlash){
+                for (int i = 0; i < morse.length(); i++) {
+                    char ch = morse.charAt(i);
+//                    textView.setText(Character.toString(ch));
+//                    textView.append(Character.toString(ch));
+                    
                     try {
-                        flashLightOn();
-                    } catch (CameraAccessException e) {
+                        setTextFunction(Character.toString(ch), textView);
+                    } catch (InterruptedException e) {
                         e.printStackTrace();
+                    }
+
+                    if (ch == '.') {
+                        if (hasCameraFlash) {
+                            try {
+                                flashLightOn();
+                                Thread.sleep(250);
+                                flashLightOff();
+                                Thread.sleep(250);
+                            } catch (CameraAccessException | InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    } else if (ch == '-') {
+                        textView.setText(Character.toString(ch));
+                        textView.append(Character.toString(ch));
+                        if (hasCameraFlash) {
+                            try {
+                                flashLightOn();
+                                Thread.sleep(500);
+                                flashLightOff();
+                                Thread.sleep(250);
+                            } catch (CameraAccessException | InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    } else {
+                        ;
                     }
                 }
             }
         });
+    }
+
+    private void setTextFunction(String text, TextView textView) throws InterruptedException {
+        textView.setText(text);
+        Thread.sleep(250);
     }
 
     private void flashLightOn() throws CameraAccessException {
@@ -58,10 +94,17 @@ public class MainActivity extends AppCompatActivity {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 cameraManager.setTorchMode(cameraId, true);
             }
-            Toast.makeText(MainActivity.this, "Flashlight on", Toast.LENGTH_SHORT).show();
         }
+    }
 
-
+    private void flashLightOff() throws CameraAccessException {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+            String cameraId = cameraManager.getCameraIdList()[0];
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                cameraManager.setTorchMode(cameraId, false);
+            }
+        }
     }
 
     public static String textToMorse(String text) {
@@ -78,7 +121,6 @@ public class MainActivity extends AppCompatActivity {
                 for (int j = 0; j < alphabet.length; j++) {
                     if (text.charAt(i) == alphabet[j]) {
                         textToMorse += morseCode[j] + " ";
-
                     }
                 }
             }
