@@ -1,5 +1,6 @@
 package com.example.morsecode;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -13,24 +14,18 @@ import android.hardware.camera2.CameraManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.CountDownTimer;
-import android.os.Handler;
-import android.os.Message;
-import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-
-import java.util.Timer;
-import java.util.TimerTask;
+import android.widget.Toast;
 
 import static java.lang.Thread.sleep;
 
 public class MainActivity extends AppCompatActivity {
 
     boolean hasCameraFlash = false;
+
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,10 +34,9 @@ public class MainActivity extends AppCompatActivity {
 
         EditText editText = findViewById(R.id.editText);
         Button button = findViewById(R.id.button);
-        Button button1 = findViewById(R.id.button2);
+        Button button1 = findViewById(R.id.button1);
         TextView textView = findViewById(R.id.textView);
         hasCameraFlash = getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
-
 
 
         button.setOnClickListener(new View.OnClickListener() {
@@ -66,8 +60,6 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                     } else if (ch == '-') {
-//                        textView.setText(Character.toString(ch));
-//                        textView.append(Character.toString(ch));
                         if (hasCameraFlash) {
                             try {
                                 flashLightOn();
@@ -98,8 +90,8 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-
     }
+
 
     private void flashLightOn() throws CameraAccessException {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -123,9 +115,10 @@ public class MainActivity extends AppCompatActivity {
 
     public static String textToMorse(String text) {
         char[] alphabet = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
-                's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
+                's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0'};
         String[] morseCode = {".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..", ".---", "-.-", ".-..",
-                "--", "-.", "---", ".--.", "--.-", ".-.", "...", "-", "..-", "...-", ".--", "-..-", "-.--", "--.."};
+                "--", "-.", "---", ".--.", "--.-", ".-.", "...", "-", "..-", "...-", ".--", "-..-", "-.--", "--..",
+                ".----", "..---","...--","....-",".....","-....","--...","---..","----.","-----"};
         String textToMorse = "";
         text = text.toLowerCase();
         for (int i = 0; i < text.length(); i++) {
@@ -142,7 +135,11 @@ public class MainActivity extends AppCompatActivity {
         return textToMorse.trim();
     }
 
-    public static String morseToText(String morse, char[] alphabet, String[] morseCode) {
+    public static String morseToText(String morse) {
+        char[] alphabet = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
+                's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
+        String[] morseCode = {".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..", ".---", "-.-", ".-..",
+                "--", "-.", "---", ".--.", "--.-", ".-.", "...", "-", "..-", "...-", ".--", "-..-", "-.--", "--.."};
         String morseToText = "";
         String[] array = morse.split(" ");
         for (int i = 0; i < array.length; i++) {
