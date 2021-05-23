@@ -2,22 +2,35 @@ package com.example.morsecode;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.os.Handler;
+import android.os.Message;
+import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
+import static java.lang.Thread.sleep;
+
 public class MainActivity extends AppCompatActivity {
 
     boolean hasCameraFlash = false;
-
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,8 +39,8 @@ public class MainActivity extends AppCompatActivity {
 
         EditText editText = findViewById(R.id.editText);
         Button button = findViewById(R.id.button);
+        Button button1 = findViewById(R.id.button2);
         TextView textView = findViewById(R.id.textView);
-
         hasCameraFlash = getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
 
 
@@ -37,39 +50,30 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 String text = editText.getText().toString();
                 String morse = textToMorse(text);
-//                textView.setText(morse);
-
+                textView.setText(morse);
                 for (int i = 0; i < morse.length(); i++) {
                     char ch = morse.charAt(i);
-//                    textView.setText(Character.toString(ch));
-//                    textView.append(Character.toString(ch));
-                    
-                    try {
-                        setTextFunction(Character.toString(ch), textView);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-
+                    String character = Character.toString(ch);
                     if (ch == '.') {
                         if (hasCameraFlash) {
                             try {
                                 flashLightOn();
-                                Thread.sleep(250);
+                                sleep(250);
                                 flashLightOff();
-                                Thread.sleep(250);
+                                sleep(250);
                             } catch (CameraAccessException | InterruptedException e) {
                                 e.printStackTrace();
                             }
                         }
                     } else if (ch == '-') {
-                        textView.setText(Character.toString(ch));
-                        textView.append(Character.toString(ch));
+//                        textView.setText(Character.toString(ch));
+//                        textView.append(Character.toString(ch));
                         if (hasCameraFlash) {
                             try {
                                 flashLightOn();
-                                Thread.sleep(500);
+                                sleep(500);
                                 flashLightOff();
-                                Thread.sleep(250);
+                                sleep(250);
                             } catch (CameraAccessException | InterruptedException e) {
                                 e.printStackTrace();
                             }
@@ -80,11 +84,21 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-    }
 
-    private void setTextFunction(String text, TextView textView) throws InterruptedException {
-        textView.setText(text);
-        Thread.sleep(250);
+
+        button1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String text = editText.getText().toString();
+                String morse = textToMorse(text);
+                textView.setText(morse);
+                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.SEND_SMS}, 1);
+                Intent intent = new Intent(Intent.ACTION_SENDTO, Uri.parse("sms:" + "1 555-521-5556"));
+                intent.putExtra("sms_body", morse);
+                startActivity(intent);
+            }
+        });
+
     }
 
     private void flashLightOn() throws CameraAccessException {
@@ -145,5 +159,6 @@ public class MainActivity extends AppCompatActivity {
         }
         return morseToText;
     }
-
 }
+
+
