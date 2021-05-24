@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import android.Manifest;
 import android.content.Context;
@@ -14,66 +15,96 @@ import android.hardware.camera2.CameraManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.w3c.dom.Text;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+
 import static java.lang.Thread.sleep;
 
+@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class MainActivity extends AppCompatActivity {
 
     boolean hasCameraFlash = false;
+    static EditText editText;
+    static TextView textView;
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        EditText editText = findViewById(R.id.editText);
+        editText = findViewById(R.id.editText);
         Button button = findViewById(R.id.button);
         Button button1 = findViewById(R.id.button1);
-        TextView textView = findViewById(R.id.textView);
+        textView = findViewById(R.id.textView);
         hasCameraFlash = getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
-
 
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 String text = editText.getText().toString();
                 String morse = textToMorse(text);
-                textView.setText(morse);
-                for (int i = 0; i < morse.length(); i++) {
-                    char ch = morse.charAt(i);
-                    String character = Character.toString(ch);
-                    if (ch == '.') {
-                        if (hasCameraFlash) {
+//                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CAMERA}, 2);
+
+                Thread thread = new Thread() {
+                    @Override
+                    public void run() {
+                        for (int i = 0; i < text.length(); i++) {
                             try {
-                                flashLightOn();
-                                sleep(250);
-                                flashLightOff();
-                                sleep(250);
-                            } catch (CameraAccessException | InterruptedException e) {
+                                Thread.sleep(1000);
+                                int finalI = i;
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        char ch = text.charAt(finalI);
+                                        String character = Character.toString(ch);
+                                        textView.setText(textToMorse(character));
+
+                                        String morseCode = textToMorse(character);
+                                        for (int j = 0; j < morseCode.length(); j++) {
+                                            char morseCharacter = morseCode.charAt(j);
+                                            if (morseCharacter == '.') {
+                                                if (hasCameraFlash) {
+                                                    try {
+                                                        flashLightOn();
+                                                        sleep(250);
+                                                        flashLightOff();
+                                                        sleep(250);
+                                                    } catch (CameraAccessException | InterruptedException e) {
+                                                        e.printStackTrace();
+                                                    }
+                                                }
+                                            } else if (morseCharacter == '-') {
+                                                if (hasCameraFlash) {
+                                                    try {
+                                                        flashLightOn();
+                                                        sleep(500);
+                                                        flashLightOff();
+                                                        sleep(250);
+                                                    } catch (CameraAccessException | InterruptedException e) {
+                                                        e.printStackTrace();
+                                                    }
+                                                }
+                                            } else {
+                                                ;
+                                            }
+                                        }
+                                    }
+                                });
+                            } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
                         }
-                    } else if (ch == '-') {
-                        if (hasCameraFlash) {
-                            try {
-                                flashLightOn();
-                                sleep(500);
-                                flashLightOff();
-                                sleep(250);
-                            } catch (CameraAccessException | InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    } else {
-                        ;
                     }
-                }
+                };
+                thread.start();
             }
         });
 
@@ -85,11 +116,34 @@ public class MainActivity extends AppCompatActivity {
                 String morse = textToMorse(text);
                 textView.setText(morse);
                 ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.SEND_SMS}, 1);
-                Intent intent = new Intent(Intent.ACTION_SENDTO, Uri.parse("sms:" + "1 555-521-5556"));
-                intent.putExtra("sms_body", morse);
-                startActivity(intent);
+//                Intent intent = new Intent(Intent.ACTION_SENDTO, Uri.parse("sms:" + "1 555-521-5556"));
+//                intent.putExtra("sms_body", morse);
+//                startActivity(intent);
             }
         });
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+//        String text = editText.getText().toString();
+//        String morse = textToMorse(text);
+//        textView.setText(morse);
+        switch (requestCode) {
+            case 1:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    String text = editText.getText().toString();
+                    String morse = textToMorse(text);
+                    Intent intent = new Intent(Intent.ACTION_SENDTO);
+                    intent.setData(Uri.parse("sms:" + "1 555-521-5556"));
+                    intent.putExtra("sms_body", morse);
+                    textView.setText(morse);
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(MainActivity.this, "Permission denied", Toast.LENGTH_SHORT).show();
+                }
+                return;
+        }
+
     }
 
 
@@ -118,7 +172,7 @@ public class MainActivity extends AppCompatActivity {
                 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0'};
         String[] morseCode = {".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..", ".---", "-.-", ".-..",
                 "--", "-.", "---", ".--.", "--.-", ".-.", "...", "-", "..-", "...-", ".--", "-..-", "-.--", "--..",
-                ".----", "..---","...--","....-",".....","-....","--...","---..","----.","-----"};
+                ".----", "..---", "...--", "....-", ".....", "-....", "--...", "---..", "----.", "-----"};
         String textToMorse = "";
         text = text.toLowerCase();
         for (int i = 0; i < text.length(); i++) {
@@ -137,9 +191,10 @@ public class MainActivity extends AppCompatActivity {
 
     public static String morseToText(String morse) {
         char[] alphabet = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
-                's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
+                's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0'};
         String[] morseCode = {".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..", ".---", "-.-", ".-..",
-                "--", "-.", "---", ".--.", "--.-", ".-.", "...", "-", "..-", "...-", ".--", "-..-", "-.--", "--.."};
+                "--", "-.", "---", ".--.", "--.-", ".-.", "...", "-", "..-", "...-", ".--", "-..-", "-.--", "--..",
+                ".----", "..---", "...--", "....-", ".....", "-....", "--...", "---..", "----.", "-----"};
         String morseToText = "";
         String[] array = morse.split(" ");
         for (int i = 0; i < array.length; i++) {

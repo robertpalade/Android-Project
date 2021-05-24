@@ -17,7 +17,7 @@ public class ReceiveMessage extends BroadcastReceiver {
             for (int i = 0; i < smsextras.length; i++) {
                 SmsMessage smsMessage = SmsMessage.createFromPdu((byte[]) smsextras[i]);
                 String text = smsMessage.getMessageBody().toString();
-                String number = smsMessage.getOriginatingAddress();
+//                String number = smsMessage.getOriginatingAddress();
                 Toast.makeText(context, morseToText(text), Toast.LENGTH_SHORT).show();
             }
         }
