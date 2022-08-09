@@ -168,49 +168,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public static String textToMorse(String text) {
-        char[] alphabet = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
-                's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0'};
-        String[] morseCode = {".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..", ".---", "-.-", ".-..",
-                "--", "-.", "---", ".--.", "--.-", ".-.", "...", "-", "..-", "...-", ".--", "-..-", "-.--", "--..",
-                ".----", "..---", "...--", "....-", ".....", "-....", "--...", "---..", "----.", "-----"};
         String textToMorse = "";
         text = text.toLowerCase();
+        String[] morseCode = {".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..", ".---", "-.-", ".-..",
+                "--", "-.", "---", ".--.", "--.-", ".-.", "...", "-", "..-", "...-", ".--", "-..-", "-.--", "--.."};
         for (int i = 0; i < text.length(); i++) {
-            if (text.charAt(i) == ' ') {
-                textToMorse += "/" + " ";
-            } else {
-                for (int j = 0; j < alphabet.length; j++) {
-                    if (text.charAt(i) == alphabet[j]) {
-                        textToMorse += morseCode[j] + " ";
-                    }
-                }
-            }
+            textToMorse += morseCode[text.charAt(i) - 'a'] + " ";
         }
-        return textToMorse.trim();
+        return textToMorse;
     }
 
-    public static String morseToText(String morse) {
-        char[] alphabet = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
-                's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0'};
-        String[] morseCode = {".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..", ".---", "-.-", ".-..",
-                "--", "-.", "---", ".--.", "--.-", ".-.", "...", "-", "..-", "...-", ".--", "-..-", "-.--", "--..",
-                ".----", "..---", "...--", "....-", ".....", "-....", "--...", "---..", "----.", "-----"};
-        String morseToText = "";
-        String[] array = morse.split(" ");
-        for (int i = 0; i < array.length; i++) {
-            for (int j = 0; j < morseCode.length; j++) {
-                if (array[i].compareTo(morseCode[j]) == 0) {
-                    morseToText += alphabet[j];
-                } else {
-                    if (array[i].compareTo("/") == 0) {
-                        morseToText += " ";
-                        break;
-                    }
-                }
-            }
-        }
-        return morseToText;
-    }
+    
 }
 
 
