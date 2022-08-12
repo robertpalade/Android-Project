@@ -39,9 +39,6 @@ public class ReceiveMessage extends BroadcastReceiver {
         }
 
         for (int i = 0; i < morseArray.length; i++) {
-            if(morseArray[i].compareTo("/") == 0){
-                text += " ";
-            }
             text += morseToText.get(morseArray[i]) + " ";
         }
         return text;
